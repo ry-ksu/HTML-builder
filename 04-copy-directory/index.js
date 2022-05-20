@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const copyFolder = () => {
+const copyDir = () => {
   fs.mkdir(
     path.join(__dirname, '.\\files-copy'),
     { recursive: true },
@@ -37,4 +37,4 @@ const copyFolder = () => {
   );
 };
 
-copyFolder();
+copyDir();
