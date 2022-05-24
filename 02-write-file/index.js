@@ -9,7 +9,7 @@ fs.writeFile(path.join(__dirname, 'text.txt'), '', (err) => {
 stdout.write(`Please, enter the text for add to 'text.txt': \n`);
 
 stdin.on('data', (data) => {
-  if (data.toString().slice(0, 4) === 'exit') {
+  if (data.toString().trim() === 'exit') {
     process.exit();
   }
   fs.appendFile(path.join(__dirname, 'text.txt'), data, (err) => {
