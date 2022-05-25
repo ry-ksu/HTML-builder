@@ -1,197 +1,108 @@
 const path = require('path');
-const fs = require('fs');
+const fsPromises = require('fs').promises;
 
-fs.mkdir(
-  path.join(__dirname, '.\\project-dist'),
-  { recursive: true },
-  (err) => {
-    if (err) throw err;
-    fs.readFile(path.join(__dirname, 'template.html'), 'utf-8', (err, data) => {
-      if (err) throw err;
-      fs.readFile(
-        path.join(__dirname, 'components', 'header.html'),
-        'utf-8',
-        (err, dataHeader) => {
-          if (err) throw err;
-          fs.readFile(
-            path.join(__dirname, 'components', 'articles.html'),
-            'utf-8',
-            (err, dataArticles) => {
-              if (err) throw err;
-              fs.readFile(
-                path.join(__dirname, 'components', 'footer.html'),
-                'utf-8',
-                (err, dataFooter) => {
-                  if (err) throw err;
-                  fs.readFile(
-                    path.join(__dirname, 'components', 'about.html'),
-                    'utf-8',
-                    (err, dataAbout) => {
-                      if (err);
-                      let result = data.replace(/{{header}}/, dataHeader);
-                      result = result.replace(/{{articles}}/, dataArticles);
-                      result = result.replace(/{{footer}}/, dataFooter);
-                      result = result.replace(/{{about}}/, dataAbout);
-                      fs.writeFile(
-                        path.join(__dirname, '.\\project-dist', 'index.html'),
-                        result,
-                        (err) => {
-                          if (err) throw err;
-                        }
-                      );
-                    }
-                  );
-                }
-              );
-            }
-          );
+const pathAssets = path.resolve(__dirname, '.\\project-dist', '.\\assets');
+
+async function createIndexHtml() {
+  try {
+    await fsPromises.mkdir(path.resolve(__dirname, '.\\project-dist'), { recursive: true });
+    try {
+      let dataTemplate = await fsPromises.readFile(path.resolve(__dirname, 'template.html'), 'utf-8');
+      try {
+        const files = await fsPromises.readdir(path.resolve(__dirname, '.\\components'));
+        for (let file of files) {
+          try {
+            let dataFile = await fsPromises.readFile(path.resolve(__dirname, '.\\components', file));
+            let fileName = file.split('.')[0];
+            dataTemplate = dataTemplate.replace(`{{${fileName}}}`, dataFile);
+          } catch (err) {
+            throw err;
+          }
         }
-      );
-    });
-  }
-);
-
-fs.writeFile(path.join(__dirname, 'project-dist', 'style.css'), '', (err) => {
-  if (err) throw err;
-});
-
-fs.readdir(
-  path.join(__dirname, '.\\styles'),
-  { withFileTypes: true },
-  (err, files) => {
-    if (err) {
+        try {
+          fsPromises.writeFile(path.join(__dirname, '.\\project-dist', 'index.html'), dataTemplate);
+        } catch (err) {
+          throw err;
+        }
+      } catch (err) {
+        throw err;
+      }
+    } catch (err) {
       throw err;
-    } else {
-      files.forEach((file) => {
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function createStyles() {
+  try {
+    const filesStyle = await fsPromises.readdir(path.resolve(__dirname, '.\\styles'), { withFileTypes: true });
+    let fileStyleBundle = '';
+    for (let file of filesStyle) {
+      try {
         if (path.extname(file.name) === '.css' && file.isFile() === true) {
-          fs.readFile(
-            path.join(__dirname, '.\\styles', file.name),
-            'utf-8',
-            (err, data) => {
-              if (err) throw err;
-              fs.appendFile(
-                path.join(__dirname, 'project-dist', 'style.css'),
-                data,
-                (err) => {
-                  if (err) throw err;
-                }
+          try {
+            let fileStyle = await fsPromises.readFile(path.join(__dirname, '.\\styles', file.name), 'utf-8');
+            fileStyleBundle += fileStyle;
+          } catch (err) {
+            throw err;
+          }
+        }
+      } catch (err) {
+        throw err;
+      }
+    }
+    try {
+      fsPromises.writeFile(path.resolve(__dirname, 'project-dist', 'style.css'), fileStyleBundle);
+    } catch (err) {
+      throw err;
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function createAssets() {
+  try {
+    await fsPromises.rm(pathAssets, { recursive: true, force: true });
+  } catch (err) {
+    throw err;
+  }
+
+  try {
+    await fsPromises.mkdir(pathAssets, { recursive: true });
+  } catch (err) {
+    throw err;
+  }
+
+  try {
+    const filesAssets = await fsPromises.readdir(path.resolve(__dirname, '.\\assets'), { withFileTypes: true });
+    for (let fileAssets of filesAssets) {
+      if (!fileAssets.isFile()) {
+        try {
+          await fsPromises.mkdir(path.resolve(__dirname, '.\\project-dist', '.\\assets', fileAssets.name));
+          const filesAssetsDir = await fsPromises.readdir(path.resolve(__dirname, '.\\assets', fileAssets.name), { withFileTypes: true });
+          for (let fileAssetsDir of filesAssetsDir) {
+            try {
+              fsPromises.copyFile(
+                path.resolve(__dirname, '.\\assets', fileAssets.name, fileAssetsDir.name),
+                path.resolve(__dirname, '.\\project-dist', '.\\assets', fileAssets.name, fileAssetsDir.name)
               );
+            } catch (err) {
+              throw err;
             }
-          );
+          }
+        } catch (err) {
+          throw err;
         }
-      });
+      }
     }
+  } catch (err) {
+    throw err;
   }
-);
+}
 
-fs.mkdir(
-  path.join(__dirname, 'project-dist', 'assets', 'fonts'),
-  { recursive: true },
-  (err) => {
-    if (err) {
-      throw err;
-    } else {
-      fs.readdir(
-        path.resolve(__dirname, 'project-dist', 'assets', 'fonts'),
-        (err, files) => {
-          if (err) throw err;
-          files.forEach((file) => {
-            fs.unlink(
-              path.resolve(__dirname, 'project-dist', 'assets', 'fonts', file),
-              (err) => {
-                if (err) throw err;
-              }
-            );
-          });
-        }
-      );
-
-      fs.readdir(path.resolve(__dirname, 'assets', 'fonts'), (err, files) => {
-        if (err) console.log(err);
-        files.forEach((file) => {
-          fs.copyFile(
-            path.resolve(__dirname, 'assets', 'fonts', file),
-            path.resolve(__dirname, 'project-dist', 'assets', 'fonts', file),
-            (err) => {
-              if (err) throw err;
-            }
-          );
-        });
-      });
-    }
-  }
-);
-
-fs.mkdir(
-  path.join(__dirname, 'project-dist', 'assets', 'img'),
-  { recursive: true },
-  (err) => {
-    if (err) {
-      throw err;
-    } else {
-      fs.readdir(
-        path.resolve(__dirname, 'project-dist', 'assets', 'img'),
-        (err, files) => {
-          if (err) throw err;
-          files.forEach((file) => {
-            fs.unlink(
-              path.resolve(__dirname, 'project-dist', 'assets', 'img', file),
-              (err) => {
-                if (err) throw err;
-              }
-            );
-          });
-          fs.readdir(path.resolve(__dirname, 'assets', 'img'), (err, files) => {
-            if (err) console.log(err);
-            files.forEach((file) => {
-              fs.copyFile(
-                path.resolve(__dirname, 'assets', 'img', file),
-                path.resolve(__dirname, 'project-dist', 'assets', 'img', file),
-                (err) => {
-                  if (err) throw err;
-                }
-              );
-            });
-          });
-        }
-      );
-    }
-  }
-);
-
-fs.mkdir(
-  path.join(__dirname, 'project-dist', 'assets', 'svg'),
-  { recursive: true },
-  (err) => {
-    if (err) {
-      throw err;
-    } else {
-      fs.readdir(
-        path.resolve(__dirname, 'project-dist', 'assets', 'svg'),
-        (err, files) => {
-          if (err) throw err;
-          files.forEach((file) => {
-            fs.unlink(
-              path.resolve(__dirname, 'project-dist', 'assets', 'svg', file),
-              (err) => {
-                if (err) throw err;
-              }
-            );
-          });
-          fs.readdir(path.resolve(__dirname, 'assets', 'svg'), (err, files) => {
-            if (err) console.log(err);
-            files.forEach((file) => {
-              fs.copyFile(
-                path.resolve(__dirname, 'assets', 'svg', file),
-                path.resolve(__dirname, 'project-dist', 'assets', 'svg', file),
-                (err) => {
-                  if (err) throw err;
-                }
-              );
-            });
-          });
-        }
-      );
-    }
-  }
-);
+createIndexHtml();
+createStyles();
+createAssets();
