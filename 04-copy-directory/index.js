@@ -1,7 +1,7 @@
 const path = require('path');
 const fsPromises = require('fs').promises;
 
-const path_files_copy = path.resolve(__dirname, '.\\files-copy');
+const path_files_copy = path.resolve(__dirname, 'files-copy');
 
 async function copyDir() {
   try {
@@ -17,12 +17,12 @@ async function copyDir() {
   }
 
   try {
-    const files = await fsPromises.readdir(path.resolve(__dirname, '.\\files'));
+    const files = await fsPromises.readdir(path.resolve(__dirname, 'files'));
     for (const file of files) {
       try {
         fsPromises.copyFile(
-          path.resolve(__dirname, '.\\files', file),
-          path.resolve(__dirname, '.\\files-copy', file)
+          path.resolve(__dirname, 'files', file),
+          path.resolve(__dirname, 'files-copy', file)
         );
       } catch (err) {
         throw err;
